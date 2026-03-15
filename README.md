@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Evan's Calendar
 
-## Getting Started
+Personal calendar app with API access for automated event creation.
 
-First, run the development server:
+## Setup
+
+### 1. Create Upstash Redis Database (Free)
+
+1. Go to [console.upstash.com](https://console.upstash.com)
+2. Create a new Redis database (free tier)
+3. Copy the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+
+### 2. Deploy to Vercel
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd evan-calendar
+vercel login
+vercel
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+When prompted, add these environment variables in the Vercel dashboard:
+- `API_KEY` - Your secret API key for programmatic access
+- `WEB_PASSWORD` - Password to access the web UI
+- `UPSTASH_REDIS_REST_URL` - From Upstash
+- `UPSTASH_REDIS_REST_TOKEN` - From Upstash
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Access
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Web UI**: Visit your Vercel URL, enter your password
+- **API**: Use Bearer token authentication
 
-## Learn More
+## API Usage
 
-To learn more about Next.js, take a look at the following resources:
+All API endpoints require `Authorization: Bearer <API_KEY>` header.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### List all events
+```bash
+GET /api/events
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Get events in date range
+```bash
+GET /api/events?start=2026-03-01&end=2026-03-31
+```
 
-## Deploy on Vercel
+### Create event
+```bash
+POST /api/events
+{
+  "title": "Meeting",
+  "description": "Team sync",
+  "start": "2026-03-15T10:00:00Z",
+  "end": "2026-03-15T11:00:00Z",
+  "allDay": false,
+  "source": "email"
+}
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Update event
+```bash
+PATCH /api/events/{id}
+{
+  "title": "Updated title"
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Delete event
+```bash
+DELETE /api/events/{id}
+```
+
+## Automated Event Discovery
+
+OpenClaw will scan twice daily (12am and 12pm) for events from:
+- Email
+- Browser tabs
+- Local files
+- Other configured sources
+
+Events are tagged with their source for easy identification.
